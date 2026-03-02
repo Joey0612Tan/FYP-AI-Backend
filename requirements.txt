@@ -1,0 +1,8 @@
+flask
+flask-cors
+numpy
+scipy
+pillow
+tensorflow-cpu
+google-generativeai
+gunicorn
