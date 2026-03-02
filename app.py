@@ -18,7 +18,7 @@ CORS(app)
 
 print("⌛ Loading ResNet50 for real-time matching...")
 # cv_model = ResNet50(weights='imagenet', include_top=False, pooling='avg')
-vector_db = np.load('product_vectors.npy', allow_pickle=True)
+# vector_db = np.load('product_vectors.npy', allow_pickle=True)
 
 def get_ai_styled_response(prompt, style_class):
     try:
@@ -97,4 +97,5 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host='0.0.0.0', port=port)
+
 
