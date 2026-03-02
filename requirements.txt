@@ -3,6 +3,6 @@ flask-cors
 numpy==1.24.3
 scipy
 pillow
-tensorflow-cpu==2.12.0
 google-generativeai
 gunicorn
+
