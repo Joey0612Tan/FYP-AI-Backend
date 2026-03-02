@@ -5,8 +5,8 @@ from flask_cors import CORS
 import io, re
 from PIL import Image
 import tensorflow as tf
-from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-from tensorflow.keras.preprocessing import image
+# from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+# from tensorflow.keras.preprocessing import image
 import google.generativeai as genai
 import os
 
@@ -17,7 +17,7 @@ app = Flask(__name__)
 CORS(app)
 
 print("⌛ Loading ResNet50 for real-time matching...")
-cv_model = ResNet50(weights='imagenet', include_top=False, pooling='avg')
+# cv_model = ResNet50(weights='imagenet', include_top=False, pooling='avg')
 vector_db = np.load('product_vectors.npy', allow_pickle=True)
 
 def get_ai_styled_response(prompt, style_class):
@@ -46,27 +46,31 @@ def get_ai_styled_response(prompt, style_class):
     except Exception as e:
         return f'<div class="ai-response-container">😵 AI is dizzy: {str(e)}</div>'
 
+# @app.route('/visual_search', methods=['POST'])
+# def visual_search():
+#     if 'image' not in request.files: return jsonify({"error": "No image"}), 400
+#     try:
+#         file = request.files['image']
+#         img = Image.open(io.BytesIO(file.read())).convert('RGB').resize((224, 224))
+#         x = image.img_to_array(img)
+#         x = np.expand_dims(x, axis=0)
+#         x = preprocess_input(x)
+#         query_vec = cv_model.predict(x, verbose=0).flatten()
+
+#         all_results = []
+#         for item in vector_db:
+#             similarity = 1 - cosine(query_vec, item['vector'])
+#             if similarity > 0.5:
+#                 all_results.append({"pid": str(item['pid']), "score": float(similarity)})
+        
+#         all_results = sorted(all_results, key=lambda x: x['score'], reverse=True)[:10]
+#         return jsonify({"status": "success", "matches": [r['pid'] for r in all_results], "top_score": all_results[0]['score'] if all_results else 0})
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
 @app.route('/visual_search', methods=['POST'])
 def visual_search():
-    if 'image' not in request.files: return jsonify({"error": "No image"}), 400
-    try:
-        file = request.files['image']
-        img = Image.open(io.BytesIO(file.read())).convert('RGB').resize((224, 224))
-        x = image.img_to_array(img)
-        x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x)
-        query_vec = cv_model.predict(x, verbose=0).flatten()
-
-        all_results = []
-        for item in vector_db:
-            similarity = 1 - cosine(query_vec, item['vector'])
-            if similarity > 0.5:
-                all_results.append({"pid": str(item['pid']), "score": float(similarity)})
-        
-        all_results = sorted(all_results, key=lambda x: x['score'], reverse=True)[:10]
-        return jsonify({"status": "success", "matches": [r['pid'] for r in all_results], "top_score": all_results[0]['score'] if all_results else 0})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"status": "success", "matches": [], "message": "Visual search is offline for maintenance"})
 
 @app.route('/summarize_reviews', methods=['POST'])
 def summarize_reviews():
@@ -91,4 +95,5 @@ def compare_products_ai():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
+
     app.run(host='0.0.0.0', port=port)
