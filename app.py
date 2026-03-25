@@ -47,6 +47,7 @@ def get_ai_styled_response(prompt, style_class):
 
 @app.route('/visual_search', methods=['POST'])
 def visual_search():
+    print("--- RECEIVED REQUEST ---") # 如果 Render 日志没印这个，就是 403 挡在门外了
     if 'image' not in request.files:
         return jsonify({"error": "No image"}), 400
     
