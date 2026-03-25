@@ -5,3 +5,4 @@ scipy
 pillow
 google-generativeai
 gunicorn
+onnxruntime
