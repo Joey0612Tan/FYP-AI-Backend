@@ -1,8 +1,8 @@
 flask
 flask-cors
 numpy
-scipy
+scikit-learn
 pillow
-google-generativeai
+requests
 gunicorn
 onnxruntime
