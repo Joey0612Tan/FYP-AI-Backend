@@ -2,9 +2,8 @@ flask
 flask-cors
 numpy
 pillow
-requests
-gunicorn
 torch
 torchvision
 scikit-learn
+requests
 google-generativeai
