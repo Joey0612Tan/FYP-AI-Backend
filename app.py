@@ -64,7 +64,7 @@ def get_ai_styled_response(prompt, style_class):
         return f'<div class="ai-response-container">😵 AI is dizzy: {str(e)}</div>'
 
 def extract_features_from_image(image_file):
-    """Extract feature vectors from uploaded images"""
+    """Extract feature vectors from uploaded images (ONNX with Normalize)"""
     try:
         img = Image.open(io.BytesIO(image_file.read())).convert('RGB')
         print(f"Image size: {img.size}, mode: {img.mode}")
@@ -72,6 +72,12 @@ def extract_features_from_image(image_file):
         img = img.resize((224, 224))
         img_data = np.array(img).astype('float32')
         img_data = img_data / 255.0
+        
+        mean = np.array([0.485, 0.456, 0.406])
+        std = np.array([0.229, 0.224, 0.225])
+        img_data = (img_data - mean) / std
+        
+        img_data = np.transpose(img_data, (2, 0, 1))
         img_data = np.expand_dims(img_data, axis=0)
         
         features = session.run(None, {input_name: img_data})[0].flatten()
