@@ -6,4 +6,4 @@ torch
 torchvision
 scikit-learn
 requests
-google-generativeai
+gunicorn
