@@ -168,11 +168,11 @@ def health():
     })
 
 if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
     print("\n" + "="*50)
     print("Starting AI Search Server...")
     print(f"Products loaded: {len(product_dict)}")
     print(f"Product IDs: {product_ids[:10]}...")
-    print("API available at: http://localhost:5000/visual_search")
-    print("Health check: http://localhost:5000/health")
+    print(f"Port: {port}")
     print("="*50 + "\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False) 
