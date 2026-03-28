@@ -2,8 +2,6 @@ flask
 flask-cors
 numpy
 pillow
-torch
-torchvision
-scikit-learn
 requests
-gunicorn
+scikit-learn
+onnxruntime
