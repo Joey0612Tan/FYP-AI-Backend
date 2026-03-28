@@ -6,7 +6,6 @@ from PIL import Image
 import google.generativeai as genai
 import onnxruntime as ort
 
-# 配置 Gemini AI
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 ai_model = genai.GenerativeModel('gemma-3-4b-it') 
 
@@ -15,7 +14,6 @@ CORS(app)
 
 print("⌛ Loading Optimized ResNet50 (ONNX) and Vector DB...")
 
-# 加载 ONNX 模型
 try:
     session = ort.InferenceSession("resnet50_final.onnx")
     input_name = session.get_inputs()[0].name
@@ -24,24 +22,21 @@ except Exception as e:
     print(f"❌ ONNX Model Error: {e}")
     session = None
 
-# 加载特征向量数据库
 try:
     vector_db = np.load('product_vectors.npy', allow_pickle=True)
     print(f"✅ Vector DB Loaded: {len(vector_db)} products")
-    print(f"   Sample product IDs: {[item['pid'] for item in vector_db[:5]]}")
+    all_ids = [item['pid'] for item in vector_db]
+    print(f"   All product IDs: {all_ids}")
 except Exception as e:
     print(f"❌ Vector DB Error: {e}")
     vector_db = []
 
-# 打印向量数据库信息用于调试
 print(f"Vector DB loaded: {len(vector_db)} products")
 for i, item in enumerate(vector_db[:3]):
     vec = item['vector']
     if isinstance(vec, list):
         vec = np.array(vec)
     print(f"Product {item['pid']}: vector norm = {np.linalg.norm(vec):.6f}, sample = {vec[:3]}")
-
-# ==================== Helper Functions ====================
 
 def get_ai_styled_response(prompt, style_class):
     """Generate AI response with formatting"""
@@ -95,8 +90,6 @@ def extract_features_from_image(image_file):
         traceback.print_exc()
         return None
 
-# ==================== API Endpoints ====================
-
 @app.route('/visual_search', methods=['POST'])
 def visual_search():
     """Visual search: upload image, return matching product IDs"""
@@ -117,7 +110,6 @@ def visual_search():
         
         print(f"Query vector norm: {np.linalg.norm(query_vec):.6f}")
         
-        # 计算相似度
         all_results = []
         for i, item in enumerate(vector_db):
             db_vec = item['vector']
@@ -130,11 +122,9 @@ def visual_search():
             if norm_a > 0 and norm_b > 0:
                 similarity = np.dot(query_vec, db_vec) / (norm_a * norm_b)
                 
-                # 打印前5个产品的相似度
                 if i < 5:
                     print(f"  Product {item['pid']}: similarity = {similarity:.6f}, norm_b = {norm_b:.6f}")
                 
-                # 阈值设为 0.1
                 if similarity > 0.1: 
                     all_results.append({
                         "pid": int(item['pid']), 
@@ -146,8 +136,7 @@ def visual_search():
         if not all_results:
             print("No matches found")
             return jsonify({"status": "no_match", "matches": []})
-        
-        # 按相似度排序
+
         all_results = sorted(all_results, key=lambda x: x['score'], reverse=True)[:10]
         
         matches = [r['pid'] for r in all_results]
