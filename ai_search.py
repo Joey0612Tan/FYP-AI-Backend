@@ -14,8 +14,8 @@ from io import BytesIO
 app = Flask(__name__)
 CORS(app)
 
-print("Loading ResNet50 model...")
-model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+print("Loading ResNet18 model (lighter)...")
+model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 model = torch.nn.Sequential(*list(model.children())[:-1])
 model.eval()
 
@@ -49,61 +49,37 @@ def extract_features(image_source):
         return None
 
 print("Loading product images...")
-
 json_path = 'all_product_images.json'
-if not os.path.exists(json_path):
-    print(f"ERROR: {json_path} not found!")
-    print(f"Current directory: {os.getcwd()}")
-    print(f"Files in directory: {os.listdir('.')}")
-    exit(1)
-
 with open(json_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-    data = json.loads(content)
-
-print(f"JSON loaded, type: {type(data)}")
-
-product_dict = {}  
+    data = json.load(f)
 
 if isinstance(data, dict):
     first_key = list(data.keys())[0]
     items = data[first_key]
-    print(f"Found data under key: {first_key}")
 else:
     items = data
 
-print(f"Total items in JSON: {len(items)}")
-
+product_dict = {}
 for item in items:
     if isinstance(item, dict):
         product_id = item.get('product_id')
         image_url = item.get('image_url')
-        
-        if product_id and image_url:
-            if product_id not in product_dict:
-                product_dict[product_id] = image_url
-                print(f"Added product {product_id}: {image_url[:50]}...")
+        if product_id and image_url and product_id not in product_dict:
+            product_dict[product_id] = image_url
 
-print(f"\nLoaded {len(product_dict)} unique products")
-
-if len(product_dict) == 0:
-    print("ERROR: No products loaded! Check JSON format.")
-    exit(1)
+print(f"Loaded {len(product_dict)} unique products")
 
 product_ids = list(product_dict.keys())
-product_urls = list(product_dict.values())
 
-print("\nPre-computing features for all products...")
+print("Pre-computing features...")
 product_features = []
-
-for i, (pid, url) in enumerate(product_dict.items()):
-    print(f"Processing product {i+1}/{len(product_dict)}: ID={pid}")
+for pid, url in product_dict.items():
+    print(f"Processing product {pid}...")
     features = extract_features(url)
     if features is not None:
         product_features.append(features)
     else:
-        print(f"  Failed to extract features for product {pid}")
-        product_features.append(np.zeros(2048))
+        product_features.append(np.zeros(512))  
 
 print(f"Successfully processed {len(product_features)} products")
 
@@ -114,19 +90,14 @@ def visual_search():
             return jsonify({'error': 'No image provided'}), 400
         
         file = request.files['image']
-        
         temp_path = 'temp_upload.jpg'
         file.save(temp_path)
         
         query_features = extract_features(temp_path)
-        
-        try:
-            os.remove(temp_path)
-        except:
-            pass
+        os.remove(temp_path)
         
         if query_features is None:
-            return jsonify({'status': 'error', 'error': 'Failed to extract features'}), 500
+            return jsonify({'status': 'error'}), 500
         
         similarities = []
         for i, prod_feat in enumerate(product_features):
@@ -139,40 +110,21 @@ def visual_search():
         matches = [int(m[0]) for m in top_matches]
         top_score = top_matches[0][1] if top_matches else 0
         
-        print(f"Search completed. Found {len(matches)} matches. Top score: {top_score:.4f}")
-        
-        if matches:
-            return jsonify({
-                'status': 'success',
-                'matches': matches,
-                'top_score': float(top_score),
-                'all_scores': [[int(m[0]), float(m[1])] for m in top_matches]
-            })
-        else:
-            return jsonify({
-                'status': 'no_match',
-                'matches': [],
-                'message': 'No products with similarity > 0.3 found'
-            })
-            
+        return jsonify({
+            'status': 'success',
+            'matches': matches,
+            'top_score': float(top_score)
+        })
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
         'status': 'healthy',
-        'products_loaded': len(product_dict),
-        'product_ids': product_ids[:10]  
+        'products_loaded': len(product_dict)
     })
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    print("\n" + "="*50)
-    print("Starting AI Search Server...")
-    print(f"Products loaded: {len(product_dict)}")
-    print(f"Product IDs: {product_ids[:10]}...")
-    print(f"Port: {port}")
-    print("="*50 + "\n")
-    app.run(host='0.0.0.0', port=port, debug=False) 
+    app.run(host='0.0.0.0', port=port)
