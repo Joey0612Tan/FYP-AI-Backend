@@ -6,4 +6,5 @@ requests
 gunicorn
 torch
 torchvision
+onnxruntime
 google-generativeai
