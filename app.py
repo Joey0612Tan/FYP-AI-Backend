@@ -141,16 +141,48 @@ def visual_search():
         print(f"Visual Search Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/chat_and_search', methods=['POST'])
+def chat_and_search():
+    data = request.json
+    user_message = data.get('message', '')
+    prompt = f"""
+    You are an AI Shopping Assistant. Analyze the user's message: "{user_message}"
+    
+    Tasks:
+    1. Friendly Reply: Give a very short response (max 15 words).
+    2. Category/Keyword Extraction: Based on our shop (Bottle, Bowl, Cup), extract the most relevant category or product feature.
+    
+    CRITICAL: If the user mentions "1000ml", "large", "big", and they likely want a bottle, return "Bottle" as the search_keyword.
+    
+    Format your response as STRICT JSON:
+    {{
+        "reply": "Your short friendly message",
+        "search_keyword": "single keyword for SQL search"
+    }}
+    """
+
+    try:
+        response = model.generate_content(prompt)
+        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group())
+        else:
+            result = {"reply": "How can I help you today?", "search_keyword": None}
+            
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"reply": "I'm having a bit of trouble. Try again?", "search_keyword": None}), 500
+    
 @app.route('/summarize_reviews', methods=['POST'])
 def summarize_reviews():
     data = request.json
-    prompt = f"Summarize these reviews: {data.get('reviews')}. Use <b> and <li>. Summary, Pros/Cons, Verdict."
+    prompt = f"Summarize these reviews: {data.get('reviews')}. Use <b> and <li>. Summary, Pros/Cons, Verdict.Keep it under 60 words total"
     return jsonify({'summary': get_ai_styled_response(prompt, 'summarizer-style')})
 
 @app.route('/analyze_product_deep', methods=['POST'])
 def analyze_product_deep():
     data = request.json
-    prompt = f"Deeply analyze product: {data.get('name')}, Specs: {data.get('specs')}. Structure with Highlights, Scenarios, Tip."
+    prompt = f"Deeply analyze product: {data.get('name')}, Specs: {data.get('specs')}. Structure with Highlights, Scenarios, Tip.Keep it under 60 words total"
     return jsonify({'analysis': get_ai_styled_response(prompt, 'analysis-style')})
 
 @app.route('/compare_products_ai', methods=['POST'])
@@ -159,7 +191,7 @@ def compare_products_ai():
     context = ""
     for i, p in enumerate(data.get('products', [])):
         context += f"P{i+1}: {p['name']}, Specs: {p['specs']}\n"
-    prompt = f"Compare these items:\n{context}\nProvide Specs Showdown, Sentiment, and a Winner."
+    prompt = f"Compare these items:\n{context}\nProvide Specs Showdown, Sentiment, and a Winner.Keep it under 80 words total"
     return jsonify({'analysis': get_ai_styled_response(prompt, 'comparison-style')})
 
 @app.route('/health', methods=['GET'])
