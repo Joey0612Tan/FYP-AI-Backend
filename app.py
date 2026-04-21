@@ -50,17 +50,32 @@ def chat_and_search():
         
         Return ONLY valid JSON, no other text.
         
-        {{
-            "reply": "friendly short reply (max 10 words)",
-            "product_type": "core product type (bottle/cup/bowl/tumbler/mug/container)",
-            "attributes": ["attribute1", "attribute2"]
-        }}
+        Rules:
+        1. Reply: friendly, max 8 words.
+        2. search_keyword: Extract 1-2 MOST IMPORTANT words ONLY.
+           - Include product type (bottle/cup/bowl/tumbler/mug)
+           - Include key attributes if mentioned (BPA-free, ceramic, 1000ml, stainless, insulated, durable)
+           - DO NOT include full sentences or more than 2 words
+           - Translate Malay to English:
+             * "botol" → bottle
+             * "cawan" → cup
+             * "mangkuk" → bowl
+             * "tahan panas" → heat resistant
+             * "tidak mudah pecah" → durable
         
         Examples:
-        - "BPA-free microwave safe bottle" → product_type: "bottle", attributes: ["BPA-free", "microwave safe"]
-        - "durable cup for kids" → product_type: "cup", attributes: ["durable", "kids"]
-        - "stainless steel tumbler" → product_type: "tumbler", attributes: ["stainless steel"]
-        - "1000ml water bottle" → product_type: "bottle", attributes: ["1000ml"]
+        - "BPA-free microwave safe bottle" → "BPA-free bottle"
+        - "ceramic mug for microwave" → "ceramic mug"
+        - "durable cup for kids" → "durable cup"
+        - "stainless steel tumbler" → "stainless tumbler"
+        - "1000ml water bottle" → "1000ml bottle"
+        - "cari botol yang murah" → "bottle"
+        - "cawan yang tahan panas" → "heat resistant cup"
+        
+        {{
+            "reply": "your short reply",
+            "search_keyword": "1-2 word keyword"
+        }}
         """
         
         response = ai_model.generate_content(prompt)
@@ -68,16 +83,13 @@ def chat_and_search():
         
         if json_match:
             result = json.loads(json_match.group())
-            product_type = result.get('product_type', '')
-            attributes = result.get('attributes', [])
-            if attributes:
-                search_keyword = f"{' '.join(attributes)} {product_type}".strip()
-            else:
-                search_keyword = product_type
-            print(f"User: {user_message} -> Search: {search_keyword}")
+            keyword = result.get('search_keyword', '')
+            if len(keyword.split()) > 3:
+                keyword = ' '.join(keyword.split()[:2])
+            print(f"User: {user_message} -> Search: {keyword}")
             return jsonify({
                 'reply': result.get('reply', 'Let me help you find that!'),
-                'search_keyword': search_keyword
+                'search_keyword': keyword
             })
         else:
             return jsonify({"reply": "Let me help you find that!", "search_keyword": None})
