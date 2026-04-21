@@ -104,17 +104,21 @@ def compare_products_ai():
     context = ""
     for i, p in enumerate(data.get('products', [])):
         seller = p.get('seller_name', 'Unknown seller')
-        context += f"P{i+1}: {p['name']}, Seller: {seller}, Specs: {p['specs']}\n"
+        price = p.get('price', 'N/A')
+        context += f"P{i+1}: {p['name']}, Seller: {seller}, Price: RM{price}, Specs: {p['specs']}\n"
     
     prompt = f"""Compare these items:\n{context}
     
-    Provide analysis including:
-    1. Specs Showdown (features comparison)
-    2. Seller comparison (reliability, reputation if mentioned)
-    3. Sentiment analysis
-    4. Winner and why
+    IMPORTANT GUIDELINES:
+    1. If products are IDENTICAL (same name/model), focus comparison on SELLER and PRICE.
+    2. The winner should be the seller with the LOWEST price and BEST reputation (official > authorized > regular store).
+    3. Only mention product specs if they are actually different.
+    4. Keep response very short and friendly.
     
-    Keep response concise and friendly."""
+    Example output for identical products:
+    "All are the same tumbler. **Official Store** is cheapest at RM149.90 and is the official seller — best choice!"
+    
+    Now provide your analysis."""
     
     return jsonify({'analysis': get_ai_styled_response(prompt, 'comparison-style')})
 
