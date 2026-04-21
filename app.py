@@ -46,21 +46,39 @@ def chat_and_search():
         
         prompt = f"""
         You are an AI Shopping Assistant. Analyze: "{user_message}"
+        
         Tasks:
-        1. Reply: max 10 words.
-        2. Extract 1 keyword (Bottle, Bowl, Cup, or a spec like 1000ml).
-        Format as STRICT JSON:
+        1. Reply: friendly, max 10 words.
+        2. Extract a COMPLETE search keyword including BOTH product type AND any features mentioned.
+        
+        IMPORTANT: 
+        - Features include: BPA-free, microwave-safe, durable, ceramic, stainless steel, glass, large capacity, 1000ml, insulated, etc.
+        - Include ALL relevant attributes in the keyword.
+        
+        Examples:
+        - "I want a BPA-free bottle" → search_keyword = "BPA-free bottle"
+        - "ceramic mug for microwave" → search_keyword = "ceramic microwave mug"
+        - "large capacity water bottle 1000ml" → search_keyword = "1000ml bottle"
+        - "durable cup for kids" → search_keyword = "durable cup"
+        - "stainless steel tumbler that keeps hot" → search_keyword = "stainless steel insulated tumbler"
+        
+        Format as STRICT JSON (ONLY JSON, no other text):
         {{
-            "reply": "...",
-            "search_keyword": "..."
+            "reply": "your friendly reply here",
+            "search_keyword": "complete keyword with features here"
         }}
         """
-        response = ai_model.generate_content(prompt) 
+        
+        response = ai_model.generate_content(prompt)
         json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        
         if json_match:
-            return jsonify(json.loads(json_match.group()))
+            result = json.loads(json_match.group())
+            print(f"User: {user_message} -> Keyword: {result.get('search_keyword')}")  # Debug log
+            return jsonify(result)
         else:
-            return jsonify({"reply": response.text, "search_keyword": None})
+            return jsonify({"reply": "Let me help you find that!", "search_keyword": None})
+            
     except Exception as e:
         print(f"Chat Error: {e}")
         return jsonify({"reply": "I'm having a bit of trouble.", "search_keyword": None}), 500
