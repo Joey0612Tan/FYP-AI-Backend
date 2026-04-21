@@ -105,20 +105,22 @@ def compare_products_ai():
     for i, p in enumerate(data.get('products', [])):
         seller = p.get('seller_name', 'Unknown seller')
         price = p.get('price', 'N/A')
-        context += f"P{i+1}: {p['name']}, Seller: {seller}, Price: RM{price}, Specs: {p['specs']}\n"
+        rating = p.get('rating', 'N/A')
+        context += f"P{i+1}: {p['name']}, Seller: {seller}, Price: RM{price}, Rating: {rating}, Specs: {p['specs']}\n"
     
-    prompt = f"""Compare these items:\n{context}
-    
-    IMPORTANT GUIDELINES:
-    1. If products are IDENTICAL (same name/model), focus comparison on SELLER and PRICE.
-    2. The winner should be the seller with the LOWEST price and BEST reputation (official > authorized > regular store).
-    3. Only mention product specs if they are actually different.
-    4. Keep response very short and friendly.
-    
-    Example output for identical products:
-    "All are the same tumbler. **Official Store** is cheapest at RM149.90 and is the official seller — best choice!"
-    
-    Now provide your analysis."""
+        prompt = f"""Compare these items:\n{context}
+        
+        Please provide a detailed comparison with the following structure:
+        
+        1. **Specs Showdown**: Compare the key specifications of each product. Highlight differences in material, capacity, features, etc.
+        
+        2. **Seller & Price Comparison**: Compare the sellers (official store vs authorized reseller vs regular store), price differences, and any seller-related information from reviews.
+        
+        3. **Sentiment Analysis**: Summarize customer sentiment based on the reviews provided. Note any positive or negative feedback.
+        
+        4. **Winner**: Based on specs, price, seller reliability, and customer sentiment, declare a winner and explain why.
+        
+        Keep the response informative but friendly. Use bullet points or short paragraphs for readability."""
     
     return jsonify({'analysis': get_ai_styled_response(prompt, 'comparison-style')})
 
