@@ -45,22 +45,19 @@ def chat_and_search():
         user_message = data.get('message', '')
         
         prompt = f"""
-        You are an AI Shopping Assistant. Analyze: "{user_message}"
+        Analyze: "{user_message}"
         
-        Tasks:
-        1. Reply: friendly, max 10 words.
-        2. Extract a COMPLETE search keyword including BOTH product type AND any features mentioned.
-        
-        IMPORTANT: 
-        - Features include: BPA-free, microwave-safe, durable, ceramic, stainless steel, glass, large capacity, 1000ml, insulated, etc.
-        - Include ALL relevant attributes in the keyword.
+        Return JSON:
+        {{
+            "reply": "friendly reply",
+            "product_type": "core product type (bottle/cup/bowl/tumbler)",
+            "attributes": ["attribute1", "attribute2"]
+        }}
         
         Examples:
-        - "I want a BPA-free bottle" → search_keyword = "BPA-free bottle"
-        - "ceramic mug for microwave" → search_keyword = "ceramic microwave mug"
-        - "large capacity water bottle 1000ml" → search_keyword = "1000ml bottle"
-        - "durable cup for kids" → search_keyword = "durable cup"
-        - "stainless steel tumbler that keeps hot" → search_keyword = "stainless steel insulated tumbler"
+        - "BPA-free microwave safe bottle" → product_type: "bottle", attributes: ["BPA-free", "microwave safe"]
+        - "durable cup for kids" → product_type: "cup", attributes: ["durable", "kids"]
+        """
         
         Format as STRICT JSON (ONLY JSON, no other text):
         {{
