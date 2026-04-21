@@ -100,8 +100,19 @@ def compare_products_ai():
     data = request.json
     context = ""
     for i, p in enumerate(data.get('products', [])):
-        context += f"P{i+1}: {p['name']}, Specs: {p['specs']}\n"
-    prompt = f"Compare these items:\n{context}\nProvide Specs Showdown, Sentiment, and a Winner."
+        seller = p.get('seller_name', 'Unknown seller')
+        context += f"P{i+1}: {p['name']}, Seller: {seller}, Specs: {p['specs']}\n"
+    
+    prompt = f"""Compare these items:\n{context}
+    
+    Provide analysis including:
+    1. Specs Showdown (features comparison)
+    2. Seller comparison (reliability, reputation if mentioned)
+    3. Sentiment analysis
+    4. Winner and why
+    
+    Keep response concise and friendly."""
+    
     return jsonify({'analysis': get_ai_styled_response(prompt, 'comparison-style')})
 
 @app.route('/health', methods=['GET'])
