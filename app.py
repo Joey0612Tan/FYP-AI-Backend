@@ -14,8 +14,9 @@ CORS(app)
 def get_ai_styled_response(prompt, style_class):
     """Generate AI response with formatting"""
     try:
-        full_prompt = prompt + ". VERY IMPORTANT: Keep response under 50 words, use simple language, and keep it friendly."
-        response = ai_model.generate_content(full_prompt)
+        if "VERY IMPORTANT" not in prompt:
+            prompt = prompt + " Keep response under 50 words, use simple language, and keep it friendly."
+        response = ai_model.generate_content(prompt)
         res_text = response.text
         res_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', res_text)
         res_text = res_text.replace('*', '')
@@ -47,23 +48,19 @@ def chat_and_search():
         prompt = f"""
         Analyze: "{user_message}"
         
-        Return JSON:
+        Return ONLY valid JSON, no other text.
+        
         {{
-            "reply": "friendly reply",
-            "product_type": "core product type (bottle/cup/bowl/tumbler)",
+            "reply": "friendly short reply (max 10 words)",
+            "product_type": "core product type (bottle/cup/bowl/tumbler/mug/container)",
             "attributes": ["attribute1", "attribute2"]
         }}
         
         Examples:
         - "BPA-free microwave safe bottle" → product_type: "bottle", attributes: ["BPA-free", "microwave safe"]
         - "durable cup for kids" → product_type: "cup", attributes: ["durable", "kids"]
-        """
-        
-        Format as STRICT JSON (ONLY JSON, no other text):
-        {{
-            "reply": "your friendly reply here",
-            "search_keyword": "complete keyword with features here"
-        }}
+        - "stainless steel tumbler" → product_type: "tumbler", attributes: ["stainless steel"]
+        - "1000ml water bottle" → product_type: "bottle", attributes: ["1000ml"]
         """
         
         response = ai_model.generate_content(prompt)
@@ -71,8 +68,17 @@ def chat_and_search():
         
         if json_match:
             result = json.loads(json_match.group())
-            print(f"User: {user_message} -> Keyword: {result.get('search_keyword')}")  # Debug log
-            return jsonify(result)
+            product_type = result.get('product_type', '')
+            attributes = result.get('attributes', [])
+            if attributes:
+                search_keyword = f"{' '.join(attributes)} {product_type}".strip()
+            else:
+                search_keyword = product_type
+            print(f"User: {user_message} -> Search: {search_keyword}")
+            return jsonify({
+                'reply': result.get('reply', 'Let me help you find that!'),
+                'search_keyword': search_keyword
+            })
         else:
             return jsonify({"reply": "Let me help you find that!", "search_keyword": None})
             
