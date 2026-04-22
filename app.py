@@ -53,8 +53,9 @@ def chat_and_search():
         Rules:
         1. Reply: friendly, max 8 words.
         2. search_keyword: Extract 1-2 MOST IMPORTANT words ONLY.
-           - Include product type (bottle/cup/bowl/tumbler/mug)
-           - Include key attributes if mentioned (BPA-free, ceramic, 1000ml, stainless, insulated, durable)
+           - Priority 1: Key attributes (stainless, BPA-free, ceramic, 1000ml, insulated, durable, heat resistant)
+           - Priority 2: Product type (bottle, cup, bowl, tumbler, mug) - ONLY if no attribute found
+           - DO NOT combine attribute + product type unless user explicitly mentions both
            - DO NOT include full sentences or more than 2 words
            - Translate Malay to English:
              * "botol" → bottle
@@ -64,13 +65,15 @@ def chat_and_search():
              * "tidak mudah pecah" → durable
         
         Examples:
-        - "BPA-free microwave safe bottle" → "BPA-free bottle"
-        - "ceramic mug for microwave" → "ceramic mug"
-        - "durable cup for kids" → "durable cup"
-        - "stainless steel tumbler" → "stainless tumbler"
-        - "1000ml water bottle" → "1000ml bottle"
+        - "Stainless product yyds" → "stainless"
+        - "BPA-free microwave safe bottle" → "BPA-free"
+        - "I love ceramic" → "ceramic"
+        - "1000ml water bottle" → "1000ml"
+        - "ceramic mug for microwave" → "ceramic mug" (both mentioned explicitly)
+        - "durable cup for kids" → "durable cup" (both mentioned explicitly)
+        - "stainless steel tumbler" → "stainless steel"
         - "cari botol yang murah" → "bottle"
-        - "cawan yang tahan panas" → "heat resistant cup"
+        - "cawan yang tahan panas" → "heat resistant"
         
         {{
             "reply": "your short reply",
