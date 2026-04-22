@@ -52,32 +52,34 @@ def chat_and_search():
         
         Rules:
         1. Reply: friendly, max 8 words.
-        2. search_keyword: Extract 1-2 MOST IMPORTANT words ONLY.
-           - Priority 1: Key attributes (stainless, BPA-free, ceramic, 1000ml, insulated, durable, heat resistant)
-           - Priority 2: Product type (bottle, cup, bowl, tumbler, mug) - ONLY if no attribute found
-           - DO NOT combine attribute + product type unless user explicitly mentions both
-           - DO NOT include full sentences or more than 2 words
-           - Translate Malay to English:
-             * "botol" → bottle
-             * "cawan" → cup
-             * "mangkuk" → bowl
-             * "tahan panas" → heat resistant
-             * "tidak mudah pecah" → durable
+        2. search_keyword: Extract 1-2 MOST RELEVANT words for product search.
+        
+        Understand user intent:
+        - "drink water" / "water" → "bottle"
+        - "drink soup" / "soup" → "bowl"
+        - "drink coffee / tea / hot drink" → "mug"
+        - "eat cereal / rice / noodles" → "bowl"
+        
+        Priority:
+        1. If user mentions a specific DRINK/FOOD → map to product type
+        2. If user mentions a specific attribute (stainless, ceramic, BPA-free, 1000ml, cute, design) → use that
+        3. If user mentions product type (bottle, cup, bowl, tumbler) → use that
+        
+        Translate Malay to English:
+        - "botol" → bottle, "cawan" → cup, "mangkuk" → bowl
+        - "air" → water, "sup" → soup, "kopi" → coffee
         
         Examples:
+        - "help me find a container i want to drink water" → "bottle"
+        - "help me find a container i want to drink soup" → "bowl"
+        - "I love cute design" → "cute"
         - "Stainless product yyds" → "stainless"
-        - "BPA-free microwave safe bottle" → "BPA-free"
-        - "I love ceramic" → "ceramic"
-        - "1000ml water bottle" → "1000ml"
-        - "ceramic mug for microwave" → "ceramic mug" (both mentioned explicitly)
-        - "durable cup for kids" → "durable cup" (both mentioned explicitly)
-        - "stainless steel tumbler" → "stainless steel"
-        - "cari botol yang murah" → "bottle"
-        - "cawan yang tahan panas" → "heat resistant"
+        - "ceramic mug for coffee" → "ceramic mug"
+        - "cari botol yang cantik" → "cute bottle"
         
         {{
             "reply": "your short reply",
-            "search_keyword": "1-2 word keyword"
+            "search_keyword": "keyword"
         }}
         """
         
