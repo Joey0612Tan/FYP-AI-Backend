@@ -6,7 +6,7 @@ import google.generativeai as genai
 import re
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-ai_model = genai.GenerativeModel('gemma-3-4b-it')
+ai_model = genai.GenerativeModel('gemini-2.5-flash')
 
 app = Flask(__name__)
 CORS(app)
